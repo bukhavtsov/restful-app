@@ -18,7 +18,7 @@ func getDeveloper(writer http.ResponseWriter, request *http.Request) {
 	params := mux.Vars(request)
 	id, err := strconv.ParseInt(params["id"], 0, 64)
 	if err != nil {
-		log.Println("id is't integer")
+		log.Println(err)
 	}
 	developer, err := dao.Read(id)
 	if err != nil {
@@ -32,9 +32,14 @@ func getDeveloper(writer http.ResponseWriter, request *http.Request) {
 		Age:          developer.Age,
 		PrimarySkill: developer.PrimarySkill,
 	}
-	writer.WriteHeader(http.StatusOK)
 	writer.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(writer).Encode(respDeveloper)
+	err = json.NewEncoder(writer).Encode(respDeveloper)
+	if err != nil {
+		fmt.Println(err)
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	writer.WriteHeader(http.StatusOK)
 }
 func createDeveloper(writer http.ResponseWriter, request *http.Request) {
 	var dao interfaces.DeveloperDAO
@@ -52,19 +57,18 @@ func createDeveloper(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	writer.WriteHeader(http.StatusCreated)
 	writer.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(writer).Encode(developerId)
+	writer.Header().Set("Location", fmt.Sprintf("/developers/%d", developerId))
+	writer.WriteHeader(http.StatusCreated)
 }
 func updateDeveloper(writer http.ResponseWriter, request *http.Request) {
 	var dao interfaces.DeveloperDAO
 	dao = implementations.DeveloperDAOImpl{}
 	developer := new(entities.Developer)
-
 	params := mux.Vars(request)
 	id, err := strconv.ParseInt(params["id"], 0, 64)
 	if err != nil {
-		log.Println("id is't integer")
+		log.Println(err)
 	}
 	err = json.NewDecoder(request.Body).Decode(&developer)
 	if err != nil {
@@ -72,25 +76,68 @@ func updateDeveloper(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	fmt.Println(id)
 	developer.Id = id
-	err = dao.Update(developer)
+	updatedDeveloper, err := dao.Update(developer)
 	if err != nil {
 		log.Println("developer hasn't been updated")
 		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	writer.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(writer).Encode(updatedDeveloper)
+	if err != nil {
+		fmt.Println(err)
+	}
+	writer.WriteHeader(http.StatusNoContent)
+}
+func getDevelopers(writer http.ResponseWriter, request *http.Request) {
+	var dao interfaces.DeveloperDAO
+	dao = implementations.DeveloperDAOImpl{}
+	developers, err := dao.ReadAll()
+	if err != nil {
+		log.Println("developers haven't been read")
+		writer.WriteHeader(http.StatusNoContent)
+		return
+	}
+	writer.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(writer).Encode(developers)
+	if err != nil {
+		fmt.Println(err)
+	}
+	writer.WriteHeader(http.StatusOK)
+}
+func deleteDeveloper(writer http.ResponseWriter, request *http.Request) {
+	var dao interfaces.DeveloperDAO
+	dao = implementations.DeveloperDAOImpl{}
+	params := mux.Vars(request)
+	id, err := strconv.ParseInt(params["id"], 0, 64)
+	if err != nil {
+		log.Println(err)
+	}
+	err = dao.Delete(id)
+	if err != nil {
+		log.Println("developer hasn't been removed")
+		writer.WriteHeader(http.StatusNotFound)
+		return
+	}
+	writer.Header().Set("Content-Type", "application/json")
 	writer.WriteHeader(http.StatusNoContent)
 }
 
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Println(r.RequestURI)
+		next.ServeHTTP(w, r)
+	})
+}
 func main() {
 	r := mux.NewRouter()
-	//r.HandleFunc("/developers", ProductsHandler).Methods("GET")
+	r.HandleFunc("/developers", getDevelopers).Methods("GET")
 	r.HandleFunc("/developers/{id}", getDeveloper).Methods("GET")
 	r.HandleFunc("/developers", createDeveloper).Methods("POST")
 	r.HandleFunc("/developers/{id}", updateDeveloper).Methods("PUT")
-	//r.HandleFunc("/developers/{id}", ProductsHandler).Methods("DELETE")
+	r.HandleFunc("/developers/{id}", deleteDeveloper).Methods("DELETE")
 	http.Handle("/", r)
+	r.Use(loggingMiddleware)
 	log.Fatal(http.ListenAndServe(":8080", r))
 }

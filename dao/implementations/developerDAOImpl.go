@@ -23,7 +23,7 @@ func (database DeveloperDAOImpl) ReadAll() ([]*entities.Developer, error) {
 	defer db.Close()
 	developers := make([]*entities.Developer, 0)
 	if err := db.Find(&developers).Error; err != nil {
-		return nil, err
+		return []*entities.Developer{}, err
 	}
 	return developers, nil
 }
@@ -36,21 +36,25 @@ func (database DeveloperDAOImpl) Create(developer *entities.Developer) (int64, e
 	}
 	return developer.Id, nil
 }
-func (database DeveloperDAOImpl) Update(developer *entities.Developer) error {
+
+func (database DeveloperDAOImpl) Update(developer *entities.Developer) (*entities.Developer, error) {
 	db := connection.GetConnection()
 	defer db.Close()
-	if err := db.Where("id = ?", developer.Id).Error; err != nil {
-		return err
+	var newDeveloper entities.Developer
+	db.First(&newDeveloper)
+	newDeveloper.Id = developer.Id
+	newDeveloper.PrimarySkill = developer.PrimarySkill
+	newDeveloper.Age = developer.Age
+	newDeveloper.Name = developer.Name
+	if err := db.Save(&newDeveloper).Error; err != nil {
+		return nil, err
 	}
-	if err := db.Update(developer).Error; err != nil {
-		return err
-	}
-	return nil
+	return &newDeveloper, nil
 }
 func (database DeveloperDAOImpl) Delete(id int64) error {
 	db := connection.GetConnection()
 	defer db.Close()
-	if err := db.Where("id = ?", id).Delete(entities.Developer{}).Error; err != nil {
+	if err := db.Where("id = ?", id).Delete(&entities.Developer{}).Error; err != nil {
 		return err
 	}
 	return nil
