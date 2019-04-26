@@ -1,34 +1,34 @@
-package implementations
+package daos
 
 import (
-	"github.com/bukhavtsov/restful-app/dao/entities"
 	"github.com/bukhavtsov/restful-app/database/connection"
+	"github.com/bukhavtsov/restful-app/models"
 )
 
-type CustomerDAOImpl struct {
+type CustomerDAO struct {
 }
 
-func (database CustomerDAOImpl) Read(id int64) (*entities.Customer, error) {
+func (database CustomerDAO) Read(id int64) (*models.Customer, error) {
 	db := connection.GetConnection()
 	defer db.Close()
-	customer := entities.Customer{}
+	customer := models.Customer{}
 	if err := db.Where("id = ?", id).Find(&customer).Error; err != nil {
 		return nil, err
 	}
 	return &customer, nil
 }
 
-func (database CustomerDAOImpl) ReadAll() ([]*entities.Customer, error) {
+func (database CustomerDAO) ReadAll() ([]*models.Customer, error) {
 	db := connection.GetConnection()
 	defer db.Close()
-	customers := make([]*entities.Customer, 0)
+	customers := make([]*models.Customer, 0)
 	if err := db.Find(&customers).Error; err != nil {
-		return []*entities.Customer{}, err
+		return []*models.Customer{}, err
 	}
 	return customers, nil
 }
 
-func (database CustomerDAOImpl) Create(customer *entities.Customer) (int64, error) {
+func (database CustomerDAO) Create(customer *models.Customer) (int64, error) {
 	db := connection.GetConnection()
 	defer db.Close()
 	if err := db.Create(customer).Error; err != nil {
@@ -37,10 +37,10 @@ func (database CustomerDAOImpl) Create(customer *entities.Customer) (int64, erro
 	return customer.Id, nil
 }
 
-func (database CustomerDAOImpl) Update(customer *entities.Customer) (*entities.Customer, error) {
+func (database CustomerDAO) Update(customer *models.Customer) (*models.Customer, error) {
 	db := connection.GetConnection()
 	defer db.Close()
-	var newCustomer entities.Customer
+	var newCustomer models.Customer
 	db.First(&newCustomer)
 	newCustomer.Id = customer.Id
 	newCustomer.Name = customer.Name
@@ -52,10 +52,10 @@ func (database CustomerDAOImpl) Update(customer *entities.Customer) (*entities.C
 	}
 	return &newCustomer, nil
 }
-func (database CustomerDAOImpl) Delete(id int64) error {
+func (database CustomerDAO) Delete(id int64) error {
 	db := connection.GetConnection()
 	defer db.Close()
-	if err := db.Where("id = ?", id).Delete(&entities.Customer{}).Error; err != nil {
+	if err := db.Where("id = ?", id).Delete(&models.Customer{}).Error; err != nil {
 		return err
 	}
 	return nil

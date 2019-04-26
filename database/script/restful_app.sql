@@ -9,7 +9,7 @@ create table developers
 );
 alter table developers
     owner to postgres;
-create table customer
+create table customers
 (
     id       serial      not null
         constraint customer_pk
@@ -19,5 +19,6 @@ create table customer
     discount integer     not null,
     state    varchar(10) not null
 );
-alter table customer
+
+alter table customers
     owner to postgres;

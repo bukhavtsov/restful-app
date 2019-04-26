@@ -1,34 +1,38 @@
-package implementations
+package daos
 
 import (
-	"github.com/bukhavtsov/restful-app/dao/entities"
 	"github.com/bukhavtsov/restful-app/database/connection"
+	"github.com/bukhavtsov/restful-app/models"
 )
 
-type DeveloperDAOImpl struct {
+type DeveloperDAO struct {
 }
 
-func (database DeveloperDAOImpl) Read(id int64) (*entities.Developer, error) {
+func NewDeveloperDAO() *DeveloperDAO {
+	return &DeveloperDAO{}
+}
+
+func (database DeveloperDAO) Read(id int64) (*models.Developer, error) {
 	db := connection.GetConnection()
 	defer db.Close()
-	developer := entities.Developer{}
+	developer := models.Developer{}
 	if err := db.Where("id = ?", id).Find(&developer).Error; err != nil {
 		return nil, err
 	}
 	return &developer, nil
 }
 
-func (database DeveloperDAOImpl) ReadAll() ([]*entities.Developer, error) {
+func (database DeveloperDAO) ReadAll() ([]*models.Developer, error) {
 	db := connection.GetConnection()
 	defer db.Close()
-	developers := make([]*entities.Developer, 0)
+	developers := make([]*models.Developer, 0)
 	if err := db.Find(&developers).Error; err != nil {
-		return []*entities.Developer{}, err
+		return []*models.Developer{}, err
 	}
 	return developers, nil
 }
 
-func (database DeveloperDAOImpl) Create(developer *entities.Developer) (int64, error) {
+func (database DeveloperDAO) Create(developer *models.Developer) (int64, error) {
 	db := connection.GetConnection()
 	defer db.Close()
 	if err := db.Create(developer).Error; err != nil {
@@ -37,10 +41,10 @@ func (database DeveloperDAOImpl) Create(developer *entities.Developer) (int64, e
 	return developer.Id, nil
 }
 
-func (database DeveloperDAOImpl) Update(developer *entities.Developer) (*entities.Developer, error) {
+func (database DeveloperDAO) Update(developer *models.Developer) (*models.Developer, error) {
 	db := connection.GetConnection()
 	defer db.Close()
-	var newDeveloper entities.Developer
+	var newDeveloper models.Developer
 	db.First(&newDeveloper)
 	newDeveloper.Id = developer.Id
 	newDeveloper.PrimarySkill = developer.PrimarySkill
@@ -51,10 +55,10 @@ func (database DeveloperDAOImpl) Update(developer *entities.Developer) (*entitie
 	}
 	return &newDeveloper, nil
 }
-func (database DeveloperDAOImpl) Delete(id int64) error {
+func (database DeveloperDAO) Delete(id int64) error {
 	db := connection.GetConnection()
 	defer db.Close()
-	if err := db.Where("id = ?", id).Delete(&entities.Developer{}).Error; err != nil {
+	if err := db.Where("id = ?", id).Delete(&models.Developer{}).Error; err != nil {
 		return err
 	}
 	return nil
