@@ -19,6 +19,8 @@ func getDeveloper(writer http.ResponseWriter, request *http.Request) {
 	id, err := strconv.ParseInt(params["id"], 0, 64)
 	if err != nil {
 		log.Println(err)
+		writer.WriteHeader(http.StatusBadRequest)
+		return
 	}
 	developer, err := dao.Read(id)
 	if err != nil {
@@ -32,15 +34,16 @@ func getDeveloper(writer http.ResponseWriter, request *http.Request) {
 		Age:          developer.Age,
 		PrimarySkill: developer.PrimarySkill,
 	}
-	writer.Header().Set("Content-Type", "application/json")
+	addCachingHeader(writer)
 	err = json.NewEncoder(writer).Encode(respDeveloper)
 	if err != nil {
-		fmt.Println(err)
-		writer.WriteHeader(http.StatusBadRequest)
+		log.Println(err)
+		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	writer.WriteHeader(http.StatusOK)
 }
+
 func createDeveloper(writer http.ResponseWriter, request *http.Request) {
 	var dao interfaces.DeveloperDAO
 	dao = implementations.DeveloperDAOImpl{}
@@ -57,10 +60,11 @@ func createDeveloper(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	writer.Header().Set("Content-Type", "application/json")
+	addCachingHeader(writer)
 	writer.Header().Set("Location", fmt.Sprintf("/developers/%d", developerId))
 	writer.WriteHeader(http.StatusCreated)
 }
+
 func updateDeveloper(writer http.ResponseWriter, request *http.Request) {
 	var dao interfaces.DeveloperDAO
 	dao = implementations.DeveloperDAOImpl{}
@@ -80,16 +84,19 @@ func updateDeveloper(writer http.ResponseWriter, request *http.Request) {
 	updatedDeveloper, err := dao.Update(developer)
 	if err != nil {
 		log.Println("developer hasn't been updated")
-		writer.WriteHeader(http.StatusBadRequest)
+		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	writer.Header().Set("Content-Type", "application/json")
+	addCachingHeader(writer)
 	err = json.NewEncoder(writer).Encode(updatedDeveloper)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 	writer.WriteHeader(http.StatusNoContent)
 }
+
 func getDevelopers(writer http.ResponseWriter, request *http.Request) {
 	var dao interfaces.DeveloperDAO
 	dao = implementations.DeveloperDAOImpl{}
@@ -99,10 +106,12 @@ func getDevelopers(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusNoContent)
 		return
 	}
-	writer.Header().Set("Content-Type", "application/json")
+	addCachingHeader(writer)
 	err = json.NewEncoder(writer).Encode(developers)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 	writer.WriteHeader(http.StatusOK)
 }
@@ -120,8 +129,14 @@ func deleteDeveloper(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusNotFound)
 		return
 	}
-	writer.Header().Set("Content-Type", "application/json")
+	addCachingHeader(writer)
 	writer.WriteHeader(http.StatusNoContent)
+}
+
+func addCachingHeader(writer http.ResponseWriter) {
+	writer.Header().Set("Content-Type", "application/json")
+	writer.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate")
+	writer.Header().Set("Pragma", "no-cache")
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {
@@ -130,6 +145,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/developers", getDevelopers).Methods("GET")
