@@ -26,6 +26,7 @@ func main() {
 	r := mux.NewRouter()
 	apis.ServeCustomerResource(r)
 	apis.ServeDeveloperResource(r)
+	apis.ServeUserResource(r)
 	http.Handle("/", r)
 	r.Use(loggingMiddleware)
 	log.Fatal(http.ListenAndServe(":8080", wrap(r)))
