@@ -42,7 +42,6 @@ func getDevelopers(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	addCachingHeader(writer)
 	writer.WriteHeader(http.StatusOK)
 }
 
@@ -68,7 +67,6 @@ func getDeveloper(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	addCachingHeader(writer)
 	writer.WriteHeader(http.StatusOK)
 }
 
@@ -88,7 +86,6 @@ func createDeveloper(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	addCachingHeader(writer)
 	writer.Header().Set("Location", fmt.Sprintf("/developers/%d", developerId))
 	writer.WriteHeader(http.StatusCreated)
 }
@@ -121,7 +118,6 @@ func updateDeveloper(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	addCachingHeader(writer)
 	writer.WriteHeader(http.StatusNoContent)
 }
 
@@ -139,12 +135,5 @@ func deleteDeveloper(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusNotFound)
 		return
 	}
-	addCachingHeader(writer)
 	writer.WriteHeader(http.StatusNoContent)
-}
-
-func addCachingHeader(writer http.ResponseWriter) {
-	writer.Header().Set("Content-Type", "application/json")
-	writer.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate")
-	writer.Header().Set("Pragma", "no-cache")
 }

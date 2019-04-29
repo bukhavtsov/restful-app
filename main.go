@@ -13,12 +13,20 @@ func loggingMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
-
+func wrap(h http.Handler) http.Handler {
+	return http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate")
+			w.Header().Set("Pragma", "no-cache")
+			h.ServeHTTP(w, r)
+		})
+}
 func main() {
 	r := mux.NewRouter()
 	apis.ServeCustomerResource(r)
 	apis.ServeDeveloperResource(r)
 	http.Handle("/", r)
 	r.Use(loggingMiddleware)
-	log.Fatal(http.ListenAndServe(":8080", r))
+	log.Fatal(http.ListenAndServe(":8080", wrap(r)))
 }

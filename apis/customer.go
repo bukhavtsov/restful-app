@@ -42,7 +42,6 @@ func getCustomers(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	addCachingHeader(writer)
 	writer.WriteHeader(http.StatusOK)
 }
 
@@ -68,7 +67,6 @@ func getCustomer(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	addCachingHeader(writer)
 	writer.WriteHeader(http.StatusOK)
 }
 
@@ -88,7 +86,6 @@ func createCustomer(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	addCachingHeader(writer)
 	writer.Header().Set("Location", fmt.Sprintf("/customers/%d", customerId))
 	writer.WriteHeader(http.StatusCreated)
 }
@@ -121,7 +118,6 @@ func updateCustomer(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	addCachingHeader(writer)
 	writer.WriteHeader(http.StatusNoContent)
 }
 
@@ -139,6 +135,5 @@ func deleteCustomer(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusNotFound)
 		return
 	}
-	addCachingHeader(writer)
 	writer.WriteHeader(http.StatusNoContent)
 }
