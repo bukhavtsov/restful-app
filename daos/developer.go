@@ -8,10 +8,6 @@ import (
 type DeveloperDAO struct {
 }
 
-func NewDeveloperDAO() *DeveloperDAO {
-	return &DeveloperDAO{}
-}
-
 func (database DeveloperDAO) Read(id int64) (*models.Developer, error) {
 	db := connection.GetConnection()
 	defer db.Close()
@@ -44,17 +40,12 @@ func (database DeveloperDAO) Create(developer *models.Developer) (int64, error) 
 func (database DeveloperDAO) Update(developer *models.Developer) (*models.Developer, error) {
 	db := connection.GetConnection()
 	defer db.Close()
-	var newDeveloper models.Developer
-	db.First(&newDeveloper)
-	newDeveloper.Id = developer.Id
-	newDeveloper.PrimarySkill = developer.PrimarySkill
-	newDeveloper.Age = developer.Age
-	newDeveloper.Name = developer.Name
-	if err := db.Save(&newDeveloper).Error; err != nil {
+	if err := db.Save(&developer).Error; err != nil {
 		return nil, err
 	}
-	return &newDeveloper, nil
+	return developer, nil
 }
+
 func (database DeveloperDAO) Delete(id int64) error {
 	db := connection.GetConnection()
 	defer db.Close()

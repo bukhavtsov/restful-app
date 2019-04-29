@@ -36,13 +36,13 @@ func getCustomers(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusNoContent)
 		return
 	}
-	addCachingHeader(writer)
 	err = json.NewEncoder(writer).Encode(customers)
 	if err != nil {
 		log.Println(err)
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	addCachingHeader(writer)
 	writer.WriteHeader(http.StatusOK)
 }
 
@@ -62,20 +62,13 @@ func getCustomer(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusNotFound)
 		return
 	}
-	respCustomer := models.Customer{
-		Id:       customer.Id,
-		Name:     customer.Name,
-		Money:    customer.Money,
-		Discount: customer.Discount,
-		State:    customer.State,
-	}
-	addCachingHeader(writer)
-	err = json.NewEncoder(writer).Encode(respCustomer)
+	err = json.NewEncoder(writer).Encode(customer)
 	if err != nil {
 		log.Println(err)
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	addCachingHeader(writer)
 	writer.WriteHeader(http.StatusOK)
 }
 
@@ -122,13 +115,13 @@ func updateCustomer(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	addCachingHeader(writer)
 	err = json.NewEncoder(writer).Encode(updatedCustomer)
 	if err != nil {
 		log.Println(err)
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	addCachingHeader(writer)
 	writer.WriteHeader(http.StatusNoContent)
 }
 

@@ -36,13 +36,13 @@ func getDevelopers(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusNoContent)
 		return
 	}
-	addCachingHeader(writer)
 	err = json.NewEncoder(writer).Encode(developers)
 	if err != nil {
 		log.Println(err)
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	addCachingHeader(writer)
 	writer.WriteHeader(http.StatusOK)
 }
 
@@ -62,19 +62,13 @@ func getDeveloper(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusNotFound)
 		return
 	}
-	respDeveloper := models.Developer{
-		Id:           developer.Id,
-		Name:         developer.Name,
-		Age:          developer.Age,
-		PrimarySkill: developer.PrimarySkill,
-	}
-	addCachingHeader(writer)
-	err = json.NewEncoder(writer).Encode(respDeveloper)
+	err = json.NewEncoder(writer).Encode(developer)
 	if err != nil {
 		log.Println(err)
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	addCachingHeader(writer)
 	writer.WriteHeader(http.StatusOK)
 }
 
@@ -121,13 +115,13 @@ func updateDeveloper(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	addCachingHeader(writer)
 	err = json.NewEncoder(writer).Encode(updatedDeveloper)
 	if err != nil {
 		log.Println(err)
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	addCachingHeader(writer)
 	writer.WriteHeader(http.StatusNoContent)
 }
 

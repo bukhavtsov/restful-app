@@ -40,17 +40,10 @@ func (database CustomerDAO) Create(customer *models.Customer) (int64, error) {
 func (database CustomerDAO) Update(customer *models.Customer) (*models.Customer, error) {
 	db := connection.GetConnection()
 	defer db.Close()
-	var newCustomer models.Customer
-	db.First(&newCustomer)
-	newCustomer.Id = customer.Id
-	newCustomer.Name = customer.Name
-	newCustomer.Discount = customer.Discount
-	newCustomer.Money = customer.Money
-	newCustomer.State = customer.State
-	if err := db.Save(&newCustomer).Error; err != nil {
+	if err := db.Save(&customer).Error; err != nil {
 		return nil, err
 	}
-	return &newCustomer, nil
+	return customer, nil
 }
 func (database CustomerDAO) Delete(id int64) error {
 	db := connection.GetConnection()
