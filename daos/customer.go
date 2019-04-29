@@ -8,7 +8,7 @@ import (
 type CustomerDAO struct {
 }
 
-func (database CustomerDAO) Read(id int64) (*models.Customer, error) {
+func (CustomerDAO) Read(id int64) (*models.Customer, error) {
 	db := connection.GetConnection()
 	defer db.Close()
 	customer := models.Customer{}
@@ -18,7 +18,7 @@ func (database CustomerDAO) Read(id int64) (*models.Customer, error) {
 	return &customer, nil
 }
 
-func (database CustomerDAO) ReadAll() ([]*models.Customer, error) {
+func (CustomerDAO) ReadAll() ([]*models.Customer, error) {
 	db := connection.GetConnection()
 	defer db.Close()
 	customers := make([]*models.Customer, 0)
@@ -28,7 +28,7 @@ func (database CustomerDAO) ReadAll() ([]*models.Customer, error) {
 	return customers, nil
 }
 
-func (database CustomerDAO) Create(customer *models.Customer) (int64, error) {
+func (CustomerDAO) Create(customer *models.Customer) (int64, error) {
 	db := connection.GetConnection()
 	defer db.Close()
 	if err := db.Create(customer).Error; err != nil {
@@ -37,7 +37,7 @@ func (database CustomerDAO) Create(customer *models.Customer) (int64, error) {
 	return customer.Id, nil
 }
 
-func (database CustomerDAO) Update(customer *models.Customer) (*models.Customer, error) {
+func (CustomerDAO) Update(customer *models.Customer) (*models.Customer, error) {
 	db := connection.GetConnection()
 	defer db.Close()
 	if err := db.Save(&customer).Error; err != nil {
@@ -45,7 +45,7 @@ func (database CustomerDAO) Update(customer *models.Customer) (*models.Customer,
 	}
 	return customer, nil
 }
-func (database CustomerDAO) Delete(id int64) error {
+func (CustomerDAO) Delete(id int64) error {
 	db := connection.GetConnection()
 	defer db.Close()
 	if err := db.Where("id = ?", id).Delete(&models.Customer{}).Error; err != nil {

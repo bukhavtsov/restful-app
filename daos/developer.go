@@ -8,7 +8,7 @@ import (
 type DeveloperDAO struct {
 }
 
-func (database DeveloperDAO) Read(id int64) (*models.Developer, error) {
+func (DeveloperDAO) Read(id int64) (*models.Developer, error) {
 	db := connection.GetConnection()
 	defer db.Close()
 	developer := models.Developer{}
@@ -18,7 +18,7 @@ func (database DeveloperDAO) Read(id int64) (*models.Developer, error) {
 	return &developer, nil
 }
 
-func (database DeveloperDAO) ReadAll() ([]*models.Developer, error) {
+func (DeveloperDAO) ReadAll() ([]*models.Developer, error) {
 	db := connection.GetConnection()
 	defer db.Close()
 	developers := make([]*models.Developer, 0)
@@ -28,7 +28,7 @@ func (database DeveloperDAO) ReadAll() ([]*models.Developer, error) {
 	return developers, nil
 }
 
-func (database DeveloperDAO) Create(developer *models.Developer) (int64, error) {
+func (DeveloperDAO) Create(developer *models.Developer) (int64, error) {
 	db := connection.GetConnection()
 	defer db.Close()
 	if err := db.Create(developer).Error; err != nil {
@@ -37,7 +37,7 @@ func (database DeveloperDAO) Create(developer *models.Developer) (int64, error) 
 	return developer.Id, nil
 }
 
-func (database DeveloperDAO) Update(developer *models.Developer) (*models.Developer, error) {
+func (DeveloperDAO) Update(developer *models.Developer) (*models.Developer, error) {
 	db := connection.GetConnection()
 	defer db.Close()
 	if err := db.Save(&developer).Error; err != nil {
@@ -46,7 +46,7 @@ func (database DeveloperDAO) Update(developer *models.Developer) (*models.Develo
 	return developer, nil
 }
 
-func (database DeveloperDAO) Delete(id int64) error {
+func (DeveloperDAO) Delete(id int64) error {
 	db := connection.GetConnection()
 	defer db.Close()
 	if err := db.Where("id = ?", id).Delete(&models.Developer{}).Error; err != nil {
