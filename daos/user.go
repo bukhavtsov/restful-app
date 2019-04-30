@@ -7,14 +7,14 @@ import (
 
 type UserDAO struct{}
 
-func (UserDAO) Get(login, password string) (bool, error) {
+func (UserDAO) Get(login, password string) (*models.User, error) {
 	db := connection.GetConnection()
 	defer db.Close()
 	user := models.User{}
 	if err := db.Where("login = ? AND password = ?", login, password).Find(&user).Error; err != nil {
-		return false, err
+		return nil, err
 	}
-	return true, nil
+	return &user, nil
 }
 
 func (UserDAO) Create(user *models.User) (int64, error) {
