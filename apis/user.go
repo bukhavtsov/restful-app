@@ -37,9 +37,13 @@ func singIn(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	writer.Header().Set("token:", token)
+	http.SetCookie(writer, &http.Cookie{
+		Name:  "token",
+		Value: token,
+	})
 	writer.WriteHeader(http.StatusOK)
 }
+
 func SignUp(writer http.ResponseWriter, request *http.Request) {
 	var dao userDAO = daos.UserDAO{}
 	user := new(models.User)
@@ -67,7 +71,10 @@ func SignUp(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	writer.Header().Set("token:", token)
+	http.SetCookie(writer, &http.Cookie{
+		Name:  "token",
+		Value: token,
+	})
 	writer.Header().Set("Location", fmt.Sprintf("/users/%d", userId))
 	writer.WriteHeader(http.StatusCreated)
 }

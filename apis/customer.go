@@ -3,6 +3,7 @@ package apis
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/bukhavtsov/restful-app/auth"
 	"github.com/bukhavtsov/restful-app/daos"
 	"github.com/bukhavtsov/restful-app/models"
 	"github.com/gorilla/mux"
@@ -20,11 +21,11 @@ type customerDAO interface {
 }
 
 func ServeCustomerResource(r *mux.Router) {
-	r.HandleFunc("/customers", getCustomers).Methods("GET")
-	r.HandleFunc("/customers/{id}", getCustomer).Methods("GET")
-	r.HandleFunc("/customers", createCustomer).Methods("POST")
-	r.HandleFunc("/customers/{id}", updateCustomer).Methods("PUT")
-	r.HandleFunc("/customers/{id}", deleteCustomer).Methods("DELETE")
+	r.Handle("/customers", auth.JWTMiddleware(getCustomers)).Methods("GET")
+	r.Handle("/customers/{id}", auth.JWTMiddleware(getCustomer)).Methods("GET")
+	r.Handle("/customers", auth.JWTMiddleware(createCustomer)).Methods("POST")
+	r.Handle("/customers/{id}", auth.JWTMiddleware(updateCustomer)).Methods("PUT")
+	r.Handle("/customers/{id}", auth.JWTMiddleware(deleteCustomer)).Methods("DELETE")
 }
 
 func getCustomers(writer http.ResponseWriter, request *http.Request) {

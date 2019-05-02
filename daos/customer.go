@@ -45,6 +45,7 @@ func (CustomerDAO) Update(customer *models.Customer) (*models.Customer, error) {
 	}
 	return customer, nil
 }
+
 func (CustomerDAO) Delete(id int64) error {
 	db := connection.GetConnection()
 	defer db.Close()

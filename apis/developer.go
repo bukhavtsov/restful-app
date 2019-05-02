@@ -3,6 +3,7 @@ package apis
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/bukhavtsov/restful-app/auth"
 	"github.com/bukhavtsov/restful-app/daos"
 	"github.com/bukhavtsov/restful-app/models"
 	"github.com/gorilla/mux"
@@ -20,11 +21,11 @@ type developerDAO interface {
 }
 
 func ServeDeveloperResource(r *mux.Router) {
-	r.HandleFunc("/developers", getDevelopers).Methods("GET")
-	r.HandleFunc("/developers/{id}", getDeveloper).Methods("GET")
-	r.HandleFunc("/developers", createDeveloper).Methods("POST")
-	r.HandleFunc("/developers/{id}", updateDeveloper).Methods("PUT")
-	r.HandleFunc("/developers/{id}", deleteDeveloper).Methods("DELETE")
+	r.Handle("/developers", auth.JWTMiddleware(getDevelopers)).Methods("GET")
+	r.Handle("/developers/{id}", auth.JWTMiddleware(getDeveloper)).Methods("GET")
+	r.Handle("/developers", auth.JWTMiddleware(createDeveloper)).Methods("POST")
+	r.Handle("/developers/{id}", auth.JWTMiddleware(updateDeveloper)).Methods("PUT")
+	r.Handle("/developers/{id}", auth.JWTMiddleware(deleteDeveloper)).Methods("DELETE")
 }
 
 func getDevelopers(writer http.ResponseWriter, request *http.Request) {
