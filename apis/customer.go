@@ -3,8 +3,8 @@ package apis
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/bukhavtsov/restful-app/auth"
 	"github.com/bukhavtsov/restful-app/daos"
+	"github.com/bukhavtsov/restful-app/jwt"
 	"github.com/bukhavtsov/restful-app/models"
 	"github.com/gorilla/mux"
 	"log"
@@ -21,11 +21,11 @@ type customerDAO interface {
 }
 
 func ServeCustomerResource(r *mux.Router) {
-	r.Handle("/customers", auth.JWTMiddleware(getCustomers)).Methods("GET")
-	r.Handle("/customers/{id}", auth.JWTMiddleware(getCustomer)).Methods("GET")
-	r.Handle("/customers", auth.JWTMiddleware(createCustomer)).Methods("POST")
-	r.Handle("/customers/{id}", auth.JWTMiddleware(updateCustomer)).Methods("PUT")
-	r.Handle("/customers/{id}", auth.JWTMiddleware(deleteCustomer)).Methods("DELETE")
+	r.Handle("/customers", jwt.VerifyMiddleware(getCustomers)).Methods("GET")
+	r.Handle("/customers/{id}", jwt.VerifyMiddleware(getCustomer)).Methods("GET")
+	r.Handle("/customers", jwt.VerifyMiddleware(createCustomer)).Methods("POST")
+	r.Handle("/customers/{id}", jwt.VerifyMiddleware(updateCustomer)).Methods("PUT")
+	r.Handle("/customers/{id}", jwt.VerifyMiddleware(deleteCustomer)).Methods("DELETE")
 }
 
 func getCustomers(writer http.ResponseWriter, request *http.Request) {

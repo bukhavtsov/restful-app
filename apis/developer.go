@@ -3,8 +3,8 @@ package apis
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/bukhavtsov/restful-app/auth"
 	"github.com/bukhavtsov/restful-app/daos"
+	"github.com/bukhavtsov/restful-app/jwt"
 	"github.com/bukhavtsov/restful-app/models"
 	"github.com/gorilla/mux"
 	"log"
@@ -21,11 +21,11 @@ type developerDAO interface {
 }
 
 func ServeDeveloperResource(r *mux.Router) {
-	r.Handle("/developers", auth.JWTMiddleware(getDevelopers)).Methods("GET")
-	r.Handle("/developers/{id}", auth.JWTMiddleware(getDeveloper)).Methods("GET")
-	r.Handle("/developers", auth.JWTMiddleware(createDeveloper)).Methods("POST")
-	r.Handle("/developers/{id}", auth.JWTMiddleware(updateDeveloper)).Methods("PUT")
-	r.Handle("/developers/{id}", auth.JWTMiddleware(deleteDeveloper)).Methods("DELETE")
+	r.Handle("/developers", jwt.VerifyMiddleware(getDevelopers)).Methods("GET")
+	r.Handle("/developers/{id}", jwt.VerifyMiddleware(getDeveloper)).Methods("GET")
+	r.Handle("/developers", jwt.VerifyMiddleware(createDeveloper)).Methods("POST")
+	r.Handle("/developers/{id}", jwt.VerifyMiddleware(updateDeveloper)).Methods("PUT")
+	r.Handle("/developers/{id}", jwt.VerifyMiddleware(deleteDeveloper)).Methods("DELETE")
 }
 
 func getDevelopers(writer http.ResponseWriter, request *http.Request) {
