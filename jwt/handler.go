@@ -40,52 +40,42 @@ func parse(tokenString, secretKey string) (*jwt.Token, error) {
 
 func VerifyMiddleware(endPoint func(w http.ResponseWriter, r *http.Request)) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if isVerifiedAccess(r) {
+		accessCookie, err := r.Cookie(accessTokenName)
+		if err == nil && isVerifiedAccess(accessCookie.Value) {
 			endPoint(w, r)
 			return
-		} else if isVerifiedRefresh(r) {
-			refresh, err := r.Cookie(refreshTokenName)
+		}
+		refreshCookie, err := r.Cookie(refreshTokenName)
+		if err == nil && isVerifiedRefresh(refreshCookie.Value) {
+			user, err := getUser(refreshCookie.Value, secretKeyRefresh)
 			if err != nil {
 				log.Println(err)
-				return
-			}
-			user, err := getUser(refresh.Value, secretKeyRefresh)
-			if err != nil {
-				log.Println(err)
-				w.WriteHeader(http.StatusGone)
 				return
 			}
 			updatedAccess, err := getUpdatedAccess(*user)
 			if err != nil {
-				fmt.Println("access token :", err)
+				fmt.Println("accessCookie token :", err)
 				return
 			}
 			http.SetCookie(w, &http.Cookie{Name: accessTokenName, Value: updatedAccess})
 			endPoint(w, r)
 			return
-		} else {
-			w.WriteHeader(http.StatusGone)
-			return
 		}
+		w.WriteHeader(http.StatusGone)
 	})
 }
 
-func isVerifiedAccess(r *http.Request) bool {
-	access, err := r.Cookie(accessTokenName)
-	if err != nil {
-		log.Println(err)
-		return false
-	}
-	if !isValidTime(access.Value, secretKeyAccess) {
+func isVerifiedAccess(access string) bool {
+	if !isValidTime(access, secretKeyAccess) {
 		log.Println("access token time is over")
 		return false
 	}
-	token, err := parse(access.Value, secretKeyAccess)
+	token, err := parse(access, secretKeyAccess)
 	if err != nil {
 		log.Println(err)
 		return false
 	}
-	jti, err := GetId(token)
+	jti, err := GetJTI(token)
 	if err != nil {
 		log.Println(err)
 		return false
@@ -111,17 +101,12 @@ func getUpdatedAccess(user models.User) (access string, err error) {
 	return
 }
 
-func isVerifiedRefresh(r *http.Request) bool {
-	refresh, err := r.Cookie(refreshTokenName)
-	if err != nil {
-		log.Println(err)
-		return false
-	}
-	if !isValidTime(refresh.Value, secretKeyRefresh) {
+func isVerifiedRefresh(refresh string) bool {
+	if !isValidTime(refresh, secretKeyRefresh) {
 		log.Println("refresh token time is over")
 		return false
 	}
-	_, err = getUser(refresh.Value, secretKeyRefresh)
+	_, err := getUser(refresh, secretKeyRefresh)
 	if err != nil {
 		return false
 	}
@@ -134,7 +119,7 @@ func getUser(tokenString, secretKeyAccess string) (*models.User, error) {
 		log.Println(err)
 		return nil, err
 	}
-	jti, err := GetId(token)
+	jti, err := GetJTI(token)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -146,7 +131,7 @@ func getUser(tokenString, secretKeyAccess string) (*models.User, error) {
 		return nil, err
 	}
 	if user.Role != jti.Role {
-		log.Println(err)
+		log.Println("user has different role")
 		return nil, err
 	}
 	return user, err
@@ -173,7 +158,7 @@ func isValidTime(tokenString, secretKey string) bool {
 	return false
 }
 
-func GetId(token *jwt.Token) (*jti, error) {
+func GetJTI(token *jwt.Token) (*jti, error) {
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		jtiJson := fmt.Sprintf("%v", claims["jti"])
 		var jti jti
@@ -194,7 +179,7 @@ func GenerateAccess(user models.User) (tokenString string, err error) {
 	claims := jwt.StandardClaims{
 		Issuer:    iss,
 		Id:        string(jti),
-		ExpiresAt: time.Now().Add(time.Second * 5).Unix(),
+		ExpiresAt: time.Now().Add(time.Hour).Unix(),
 	}
 	rawToken := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
 	token, err := rawToken.SignedString([]byte(secretKeyAccess))
@@ -212,7 +197,7 @@ func GenerateRefresh(user models.User) (tokenString string, err error) {
 	claims := jwt.StandardClaims{
 		Issuer:    iss,
 		Id:        string(jti),
-		ExpiresAt: time.Now().Add(time.Second * 10).Unix(),
+		ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
 	}
 	rawToken := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
 	token, err := rawToken.SignedString([]byte(secretKeyRefresh))
