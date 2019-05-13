@@ -3,7 +3,6 @@ package apis
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/bukhavtsov/restful-app/daos"
 	"github.com/bukhavtsov/restful-app/jwt"
 	"github.com/bukhavtsov/restful-app/models"
 	"github.com/gorilla/mux"
@@ -20,18 +19,20 @@ type developerDAO interface {
 	Delete(id int64) error
 }
 
-func ServeDeveloperResource(r *mux.Router) {
-	r.Handle("/developers", jwt.VerifyMiddleware(getDevelopers)).Methods("GET")
-	r.Handle("/developers/{id}", jwt.VerifyMiddleware(getDeveloper)).Methods("GET")
-	r.Handle("/developers", jwt.VerifyMiddleware(createDeveloper)).Methods("POST")
-	r.Handle("/developers/{id}", jwt.VerifyMiddleware(updateDeveloper)).Methods("PUT")
-	r.Handle("/developers/{id}", jwt.VerifyMiddleware(deleteDeveloper)).Methods("DELETE")
+type developerAPI struct {
+	dao developerDAO
 }
 
-func getDevelopers(writer http.ResponseWriter, request *http.Request) {
-	var dao developerDAO
-	dao = daos.DeveloperDAO{}
-	developers, err := dao.ReadAll()
+func ServeDeveloperResource(r *mux.Router, dao developerDAO) {
+	r.Handle("/developers", jwt.VerifyPermission(developerAPI{dao}.getDevelopers)).Methods("GET")
+	r.Handle("/developers/{id}", jwt.VerifyPermission(developerAPI{dao}.getDeveloper)).Methods("GET")
+	r.Handle("/developers", jwt.VerifyPermission(developerAPI{dao}.createDeveloper)).Methods("POST")
+	r.Handle("/developers/{id}", jwt.VerifyPermission(developerAPI{dao}.updateDeveloper)).Methods("PUT")
+	r.Handle("/developers/{id}", jwt.VerifyPermission(developerAPI{dao}.deleteDeveloper)).Methods("DELETE")
+}
+
+func (api developerAPI) getDevelopers(writer http.ResponseWriter, request *http.Request) {
+	developers, err := api.dao.ReadAll()
 	if err != nil {
 		log.Println("developers haven't been read")
 		writer.WriteHeader(http.StatusNoContent)
@@ -46,9 +47,7 @@ func getDevelopers(writer http.ResponseWriter, request *http.Request) {
 	writer.WriteHeader(http.StatusOK)
 }
 
-func getDeveloper(writer http.ResponseWriter, request *http.Request) {
-	var dao developerDAO
-	dao = daos.DeveloperDAO{}
+func (api developerAPI) getDeveloper(writer http.ResponseWriter, request *http.Request) {
 	params := mux.Vars(request)
 	id, err := strconv.ParseInt(params["id"], 0, 64)
 	if err != nil {
@@ -56,7 +55,7 @@ func getDeveloper(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	developer, err := dao.Read(id)
+	developer, err := api.dao.Read(id)
 	if err != nil {
 		log.Println("developer hasn't been read")
 		writer.WriteHeader(http.StatusNotFound)
@@ -71,9 +70,7 @@ func getDeveloper(writer http.ResponseWriter, request *http.Request) {
 	writer.WriteHeader(http.StatusOK)
 }
 
-func createDeveloper(writer http.ResponseWriter, request *http.Request) {
-	var dao developerDAO
-	dao = daos.DeveloperDAO{}
+func (api developerAPI) createDeveloper(writer http.ResponseWriter, request *http.Request) {
 	developer := new(models.Developer)
 	err := json.NewDecoder(request.Body).Decode(&developer)
 	if err != nil {
@@ -81,7 +78,7 @@ func createDeveloper(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	developerId, err := dao.Create(developer)
+	developerId, err := api.dao.Create(developer)
 	if err != nil {
 		log.Println("developer hasn't been created")
 		writer.WriteHeader(http.StatusBadRequest)
@@ -91,9 +88,7 @@ func createDeveloper(writer http.ResponseWriter, request *http.Request) {
 	writer.WriteHeader(http.StatusCreated)
 }
 
-func updateDeveloper(writer http.ResponseWriter, request *http.Request) {
-	var dao developerDAO
-	dao = daos.DeveloperDAO{}
+func (api developerAPI) updateDeveloper(writer http.ResponseWriter, request *http.Request) {
 	developer := new(models.Developer)
 	params := mux.Vars(request)
 	id, err := strconv.ParseInt(params["id"], 0, 64)
@@ -107,7 +102,7 @@ func updateDeveloper(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	developer.Id = id
-	updatedDeveloper, err := dao.Update(developer)
+	updatedDeveloper, err := api.dao.Update(developer)
 	if err != nil {
 		log.Println("developer hasn't been updated")
 		writer.WriteHeader(http.StatusInternalServerError)
@@ -122,15 +117,13 @@ func updateDeveloper(writer http.ResponseWriter, request *http.Request) {
 	writer.WriteHeader(http.StatusNoContent)
 }
 
-func deleteDeveloper(writer http.ResponseWriter, request *http.Request) {
-	var dao developerDAO
-	dao = daos.DeveloperDAO{}
+func (api developerAPI) deleteDeveloper(writer http.ResponseWriter, request *http.Request) {
 	params := mux.Vars(request)
 	id, err := strconv.ParseInt(params["id"], 0, 64)
 	if err != nil {
 		log.Println(err)
 	}
-	err = dao.Delete(id)
+	err = api.dao.Delete(id)
 	if err != nil {
 		log.Println("developer hasn't been removed")
 		writer.WriteHeader(http.StatusNotFound)

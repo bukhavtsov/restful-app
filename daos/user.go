@@ -5,9 +5,13 @@ import (
 	"github.com/bukhavtsov/restful-app/models"
 )
 
-type UserDAO struct{}
+type userDAO struct{}
 
-func (UserDAO) Get(login, password string) (*models.User, error) {
+func NewUserDAO() *userDAO {
+	return &userDAO{}
+}
+
+func (dao *userDAO) Get(login, password string) (*models.User, error) {
 	db := connection.GetConnection()
 	defer db.Close()
 	user := models.User{}
@@ -17,7 +21,7 @@ func (UserDAO) Get(login, password string) (*models.User, error) {
 	return &user, nil
 }
 
-func (UserDAO) GetById(id int64) (*models.User, error) {
+func (dao *userDAO) GetById(id int64) (*models.User, error) {
 	db := connection.GetConnection()
 	defer db.Close()
 	user := models.User{}
@@ -27,7 +31,7 @@ func (UserDAO) GetById(id int64) (*models.User, error) {
 	return &user, nil
 }
 
-func (UserDAO) Create(user *models.User) (int64, error) {
+func (dao *userDAO) Create(user *models.User) (int64, error) {
 	db := connection.GetConnection()
 	defer db.Close()
 	if err := db.Create(user).Error; err != nil {
@@ -36,7 +40,7 @@ func (UserDAO) Create(user *models.User) (int64, error) {
 	return user.Id, nil
 }
 
-func (UserDAO) Update(user *models.User, refreshToken string) (*models.User, error) {
+func (dao *userDAO) Update(user *models.User, refreshToken string) (*models.User, error) {
 	db := connection.GetConnection()
 	defer db.Close()
 	if err := db.Model(&user).Where("id = ?", user.Id).Update("refresh_token", refreshToken).Error; err != nil {

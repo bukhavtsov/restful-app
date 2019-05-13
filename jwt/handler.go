@@ -38,7 +38,7 @@ func parse(tokenString, secretKey string) (*jwt.Token, error) {
 	return token, nil
 }
 
-func VerifyMiddleware(endPoint func(w http.ResponseWriter, r *http.Request)) http.Handler {
+func VerifyPermission(endPoint func(w http.ResponseWriter, r *http.Request)) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		accessCookie, err := r.Cookie(accessTokenName)
 		if err == nil && isVerifiedAccess(accessCookie.Value) {
@@ -80,8 +80,7 @@ func isVerifiedAccess(access string) bool {
 		log.Println(err)
 		return false
 	}
-	dao := daos.UserDAO{}
-	user, err := dao.GetById(jti.Id)
+	user, err := daos.NewUserDAO().GetById(jti.Id)
 	if err != nil {
 		log.Println("user hasn't been found:", err)
 		return false
@@ -124,8 +123,7 @@ func getUser(tokenString, secretKeyAccess string) (*models.User, error) {
 		log.Println(err)
 		return nil, err
 	}
-	dao := daos.UserDAO{}
-	user, err := dao.GetById(jti.Id)
+	user, err := daos.NewUserDAO().GetById(jti.Id)
 	if err != nil {
 		log.Println("user hasn't been found:", err)
 		return nil, err

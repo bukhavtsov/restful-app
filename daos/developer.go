@@ -5,10 +5,13 @@ import (
 	"github.com/bukhavtsov/restful-app/models"
 )
 
-type DeveloperDAO struct {
+type developerDAO struct{}
+
+func NewDeveloperDAO() *developerDAO {
+	return &developerDAO{}
 }
 
-func (DeveloperDAO) Read(id int64) (*models.Developer, error) {
+func (dao *developerDAO) Read(id int64) (*models.Developer, error) {
 	db := connection.GetConnection()
 	defer db.Close()
 	developer := models.Developer{}
@@ -18,7 +21,7 @@ func (DeveloperDAO) Read(id int64) (*models.Developer, error) {
 	return &developer, nil
 }
 
-func (DeveloperDAO) ReadAll() ([]*models.Developer, error) {
+func (dao *developerDAO) ReadAll() ([]*models.Developer, error) {
 	db := connection.GetConnection()
 	defer db.Close()
 	developers := make([]*models.Developer, 0)
@@ -28,7 +31,7 @@ func (DeveloperDAO) ReadAll() ([]*models.Developer, error) {
 	return developers, nil
 }
 
-func (DeveloperDAO) Create(developer *models.Developer) (int64, error) {
+func (dao *developerDAO) Create(developer *models.Developer) (int64, error) {
 	db := connection.GetConnection()
 	defer db.Close()
 	if err := db.Create(developer).Error; err != nil {
@@ -37,7 +40,7 @@ func (DeveloperDAO) Create(developer *models.Developer) (int64, error) {
 	return developer.Id, nil
 }
 
-func (DeveloperDAO) Update(developer *models.Developer) (*models.Developer, error) {
+func (dao *developerDAO) Update(developer *models.Developer) (*models.Developer, error) {
 	db := connection.GetConnection()
 	defer db.Close()
 	if err := db.Save(&developer).Error; err != nil {
@@ -46,7 +49,7 @@ func (DeveloperDAO) Update(developer *models.Developer) (*models.Developer, erro
 	return developer, nil
 }
 
-func (DeveloperDAO) Delete(id int64) error {
+func (dao *developerDAO) Delete(id int64) error {
 	db := connection.GetConnection()
 	defer db.Close()
 	if err := db.Where("id = ?", id).Delete(&models.Developer{}).Error; err != nil {

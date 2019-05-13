@@ -5,10 +5,13 @@ import (
 	"github.com/bukhavtsov/restful-app/models"
 )
 
-type CustomerDAO struct {
+type customerDAO struct{}
+
+func NewCustomerDAO() *customerDAO {
+	return &customerDAO{}
 }
 
-func (CustomerDAO) Read(id int64) (*models.Customer, error) {
+func (dao *customerDAO) Read(id int64) (*models.Customer, error) {
 	db := connection.GetConnection()
 	defer db.Close()
 	customer := models.Customer{}
@@ -18,7 +21,7 @@ func (CustomerDAO) Read(id int64) (*models.Customer, error) {
 	return &customer, nil
 }
 
-func (CustomerDAO) ReadAll() ([]*models.Customer, error) {
+func (dao *customerDAO) ReadAll() ([]*models.Customer, error) {
 	db := connection.GetConnection()
 	defer db.Close()
 	customers := make([]*models.Customer, 0)
@@ -28,7 +31,7 @@ func (CustomerDAO) ReadAll() ([]*models.Customer, error) {
 	return customers, nil
 }
 
-func (CustomerDAO) Create(customer *models.Customer) (int64, error) {
+func (dao *customerDAO) Create(customer *models.Customer) (int64, error) {
 	db := connection.GetConnection()
 	defer db.Close()
 	if err := db.Create(customer).Error; err != nil {
@@ -37,7 +40,7 @@ func (CustomerDAO) Create(customer *models.Customer) (int64, error) {
 	return customer.Id, nil
 }
 
-func (CustomerDAO) Update(customer *models.Customer) (*models.Customer, error) {
+func (dao *customerDAO) Update(customer *models.Customer) (*models.Customer, error) {
 	db := connection.GetConnection()
 	defer db.Close()
 	if err := db.Save(&customer).Error; err != nil {
@@ -46,7 +49,7 @@ func (CustomerDAO) Update(customer *models.Customer) (*models.Customer, error) {
 	return customer, nil
 }
 
-func (CustomerDAO) Delete(id int64) error {
+func (dao *customerDAO) Delete(id int64) error {
 	db := connection.GetConnection()
 	defer db.Close()
 	if err := db.Where("id = ?", id).Delete(&models.Customer{}).Error; err != nil {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/bukhavtsov/restful-app/apis"
+	"github.com/bukhavtsov/restful-app/daos"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
@@ -23,12 +24,11 @@ func wrap(h http.Handler) http.Handler {
 	})
 }
 
-//jwt Для восстановления, отзыв jwt.
 func main() {
 	r := mux.NewRouter()
-	apis.ServeCustomerResource(r)
-	apis.ServeDeveloperResource(r)
-	apis.ServeUserResource(r)
+	apis.ServeCustomerResource(r, daos.NewCustomerDAO())
+	apis.ServeDeveloperResource(r, daos.NewDeveloperDAO())
+	apis.ServeUserResource(r, daos.NewUserDAO())
 	r.Use(loggingMiddleware)
 	log.Fatal(http.ListenAndServe(":8080", wrap(r)))
 }

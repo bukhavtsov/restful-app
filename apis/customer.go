@@ -3,7 +3,6 @@ package apis
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/bukhavtsov/restful-app/daos"
 	"github.com/bukhavtsov/restful-app/jwt"
 	"github.com/bukhavtsov/restful-app/models"
 	"github.com/gorilla/mux"
@@ -20,18 +19,20 @@ type customerDAO interface {
 	Delete(id int64) error
 }
 
-func ServeCustomerResource(r *mux.Router) {
-	r.Handle("/customers", jwt.VerifyMiddleware(getCustomers)).Methods("GET")
-	r.Handle("/customers/{id}", jwt.VerifyMiddleware(getCustomer)).Methods("GET")
-	r.Handle("/customers", jwt.VerifyMiddleware(createCustomer)).Methods("POST")
-	r.Handle("/customers/{id}", jwt.VerifyMiddleware(updateCustomer)).Methods("PUT")
-	r.Handle("/customers/{id}", jwt.VerifyMiddleware(deleteCustomer)).Methods("DELETE")
+type customerAPI struct {
+	dao customerDAO
 }
 
-func getCustomers(writer http.ResponseWriter, request *http.Request) {
-	var dao customerDAO
-	dao = daos.CustomerDAO{}
-	customers, err := dao.ReadAll()
+func ServeCustomerResource(r *mux.Router, dao customerDAO) {
+	r.Handle("/customers", jwt.VerifyPermission(customerAPI{dao}.getCustomers)).Methods("GET")
+	r.Handle("/customers/{id}", jwt.VerifyPermission(customerAPI{dao}.getCustomer)).Methods("GET")
+	r.Handle("/customers", jwt.VerifyPermission(customerAPI{dao}.createCustomer)).Methods("POST")
+	r.Handle("/customers/{id}", jwt.VerifyPermission(customerAPI{dao}.updateCustomer)).Methods("PUT")
+	r.Handle("/customers/{id}", jwt.VerifyPermission(customerAPI{dao}.deleteCustomer)).Methods("DELETE")
+}
+
+func (api customerAPI) getCustomers(writer http.ResponseWriter, request *http.Request) {
+	customers, err := api.dao.ReadAll()
 	if err != nil {
 		log.Println("customers haven't been read")
 		writer.WriteHeader(http.StatusNoContent)
@@ -46,9 +47,7 @@ func getCustomers(writer http.ResponseWriter, request *http.Request) {
 	writer.WriteHeader(http.StatusOK)
 }
 
-func getCustomer(writer http.ResponseWriter, request *http.Request) {
-	var dao customerDAO
-	dao = daos.CustomerDAO{}
+func (api customerAPI) getCustomer(writer http.ResponseWriter, request *http.Request) {
 	params := mux.Vars(request)
 	id, err := strconv.ParseInt(params["id"], 0, 64)
 	if err != nil {
@@ -56,7 +55,7 @@ func getCustomer(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	customer, err := dao.Read(id)
+	customer, err := api.dao.Read(id)
 	if err != nil {
 		log.Println("customer hasn't been read")
 		writer.WriteHeader(http.StatusNotFound)
@@ -71,9 +70,7 @@ func getCustomer(writer http.ResponseWriter, request *http.Request) {
 	writer.WriteHeader(http.StatusOK)
 }
 
-func createCustomer(writer http.ResponseWriter, request *http.Request) {
-	var dao customerDAO
-	dao = daos.CustomerDAO{}
+func (api customerAPI) createCustomer(writer http.ResponseWriter, request *http.Request) {
 	customer := new(models.Customer)
 	err := json.NewDecoder(request.Body).Decode(&customer)
 	if err != nil {
@@ -81,7 +78,7 @@ func createCustomer(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	customerId, err := dao.Create(customer)
+	customerId, err := api.dao.Create(customer)
 	if err != nil {
 		log.Println("customer hasn't been created")
 		writer.WriteHeader(http.StatusBadRequest)
@@ -91,9 +88,7 @@ func createCustomer(writer http.ResponseWriter, request *http.Request) {
 	writer.WriteHeader(http.StatusCreated)
 }
 
-func updateCustomer(writer http.ResponseWriter, request *http.Request) {
-	var dao customerDAO
-	dao = daos.CustomerDAO{}
+func (api customerAPI) updateCustomer(writer http.ResponseWriter, request *http.Request) {
 	customer := new(models.Customer)
 	params := mux.Vars(request)
 	id, err := strconv.ParseInt(params["id"], 0, 64)
@@ -107,7 +102,7 @@ func updateCustomer(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	customer.Id = id
-	updatedCustomer, err := dao.Update(customer)
+	updatedCustomer, err := api.dao.Update(customer)
 	if err != nil {
 		log.Println("customer hasn't been updated")
 		writer.WriteHeader(http.StatusInternalServerError)
@@ -122,15 +117,13 @@ func updateCustomer(writer http.ResponseWriter, request *http.Request) {
 	writer.WriteHeader(http.StatusNoContent)
 }
 
-func deleteCustomer(writer http.ResponseWriter, request *http.Request) {
-	var dao customerDAO
-	dao = daos.CustomerDAO{}
+func (api customerAPI) deleteCustomer(writer http.ResponseWriter, request *http.Request) {
 	params := mux.Vars(request)
 	id, err := strconv.ParseInt(params["id"], 0, 64)
 	if err != nil {
 		log.Println(err)
 	}
-	err = dao.Delete(id)
+	err = api.dao.Delete(id)
 	if err != nil {
 		log.Println("customer hasn't been removed")
 		writer.WriteHeader(http.StatusNotFound)
