@@ -3,8 +3,8 @@ package apis
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/bukhavtsov/restful-app/jwt"
-	"github.com/bukhavtsov/restful-app/models"
+	"github.com/bukhavtsov/restful-app/pkg/jwt"
+	"github.com/bukhavtsov/restful-app/pkg/models"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"

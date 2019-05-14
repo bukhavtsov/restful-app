@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/bukhavtsov/restful-app/apis"
-	"github.com/bukhavtsov/restful-app/daos"
+	"github.com/bukhavtsov/restful-app/pkg/apis"
+	"github.com/bukhavtsov/restful-app/pkg/data"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
@@ -26,9 +26,9 @@ func wrap(h http.Handler) http.Handler {
 
 func main() {
 	r := mux.NewRouter()
-	apis.ServeCustomerResource(r, daos.NewCustomerDAO())
-	apis.ServeDeveloperResource(r, daos.NewDeveloperDAO())
-	apis.ServeUserResource(r, daos.NewUserDAO())
+	apis.ServeCustomerResource(r, data.NewCustomerDAO())
+	apis.ServeDeveloperResource(r, data.NewDeveloperDAO())
+	apis.ServeUserResource(r, data.NewUserDAO())
 	r.Use(loggingMiddleware)
 	log.Fatal(http.ListenAndServe(":8080", wrap(r)))
 }

@@ -1,8 +1,8 @@
-package daos
+package data
 
 import (
-	"github.com/bukhavtsov/restful-app/database/connection"
-	"github.com/bukhavtsov/restful-app/models"
+	"github.com/bukhavtsov/restful-app/pkg/database/connection"
+	"github.com/bukhavtsov/restful-app/pkg/models"
 )
 
 type developerDAO struct{}

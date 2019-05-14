@@ -3,8 +3,8 @@ package jwt
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/bukhavtsov/restful-app/daos"
-	"github.com/bukhavtsov/restful-app/models"
+	"github.com/bukhavtsov/restful-app/pkg/data"
+	"github.com/bukhavtsov/restful-app/pkg/models"
 	"github.com/dgrijalva/jwt-go"
 	"log"
 	"net/http"
@@ -80,7 +80,7 @@ func isVerifiedAccess(access string) bool {
 		log.Println(err)
 		return false
 	}
-	user, err := daos.NewUserDAO().GetById(jti.Id)
+	user, err := data.NewUserDAO().GetById(jti.Id)
 	if err != nil {
 		log.Println("user hasn't been found:", err)
 		return false
@@ -123,7 +123,7 @@ func getUser(tokenString, secretKeyAccess string) (*models.User, error) {
 		log.Println(err)
 		return nil, err
 	}
-	user, err := daos.NewUserDAO().GetById(jti.Id)
+	user, err := data.NewUserDAO().GetById(jti.Id)
 	if err != nil {
 		log.Println("user hasn't been found:", err)
 		return nil, err
