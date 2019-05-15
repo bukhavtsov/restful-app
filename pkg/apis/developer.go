@@ -3,27 +3,27 @@ package apis
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/bukhavtsov/restful-app/pkg/data"
 	"github.com/bukhavtsov/restful-app/pkg/jwt"
-	"github.com/bukhavtsov/restful-app/pkg/models"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"strconv"
 )
 
-type developerDAO interface {
-	Create(developer *models.Developer) (int64, error)
-	Read(id int64) (*models.Developer, error)
-	ReadAll() ([]*models.Developer, error)
-	Update(developer *models.Developer) (*models.Developer, error)
+type developerData interface {
+	Create(developer *data.Developer) (int64, error)
+	Read(id int64) (*data.Developer, error)
+	ReadAll() ([]*data.Developer, error)
+	Update(developer *data.Developer) (*data.Developer, error)
 	Delete(id int64) error
 }
 
 type developerAPI struct {
-	dao developerDAO
+	dao developerData
 }
 
-func ServeDeveloperResource(r *mux.Router, dao developerDAO) {
+func ServeDeveloperResource(r *mux.Router, dao developerData) {
 	r.Handle("/developers", jwt.VerifyPermission(developerAPI{dao}.getDevelopers)).Methods("GET")
 	r.Handle("/developers/{id}", jwt.VerifyPermission(developerAPI{dao}.getDeveloper)).Methods("GET")
 	r.Handle("/developers", jwt.VerifyPermission(developerAPI{dao}.createDeveloper)).Methods("POST")
@@ -71,7 +71,7 @@ func (api developerAPI) getDeveloper(writer http.ResponseWriter, request *http.R
 }
 
 func (api developerAPI) createDeveloper(writer http.ResponseWriter, request *http.Request) {
-	developer := new(models.Developer)
+	developer := new(data.Developer)
 	err := json.NewDecoder(request.Body).Decode(&developer)
 	if err != nil {
 		log.Printf("failed reading JSON: %\n", err)
@@ -89,7 +89,7 @@ func (api developerAPI) createDeveloper(writer http.ResponseWriter, request *htt
 }
 
 func (api developerAPI) updateDeveloper(writer http.ResponseWriter, request *http.Request) {
-	developer := new(models.Developer)
+	developer := new(data.Developer)
 	params := mux.Vars(request)
 	id, err := strconv.ParseInt(params["id"], 0, 64)
 	if err != nil {

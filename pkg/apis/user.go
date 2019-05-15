@@ -3,25 +3,25 @@ package apis
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/bukhavtsov/restful-app/pkg/data"
 	"github.com/bukhavtsov/restful-app/pkg/jwt"
-	"github.com/bukhavtsov/restful-app/pkg/models"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 )
 
-type userDAO interface {
-	Get(login, password string) (*models.User, error)
-	Create(user *models.User) (int64, error)
-	GetById(id int64) (*models.User, error)
-	Update(user *models.User, refreshToken string) (*models.User, error)
+type userData interface {
+	Get(login, password string) (*data.User, error)
+	Create(user *data.User) (int64, error)
+	GetById(id int64) (*data.User, error)
+	Update(user *data.User, refreshToken string) (*data.User, error)
 }
 
 type userAPI struct {
-	dao userDAO
+	dao userData
 }
 
-func ServeUserResource(r *mux.Router, dao userDAO) {
+func ServeUserResource(r *mux.Router, dao userData) {
 	r.HandleFunc("/signin", userAPI{dao}.singIn).Methods("GET")
 	r.HandleFunc("/signup", userAPI{dao}.signUp).Methods("POST")
 }
@@ -59,10 +59,10 @@ func (api userAPI) singIn(writer http.ResponseWriter, request *http.Request) {
 }
 
 func (api userAPI) signUp(writer http.ResponseWriter, request *http.Request) {
-	var user models.User
+	var user data.User
 	err := json.NewDecoder(request.Body).Decode(&user)
 	if err != nil {
-		log.Printf("failed reading JSON: %\n", err)
+		log.Printf("failed reading JSON: %v\n", err)
 		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}

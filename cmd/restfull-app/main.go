@@ -3,9 +3,17 @@ package main
 import (
 	"github.com/bukhavtsov/restful-app/pkg/apis"
 	"github.com/bukhavtsov/restful-app/pkg/data"
+	"github.com/bukhavtsov/restful-app/pkg/db"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+)
+
+const (
+	engine   = "postgres"
+	username = "postgres"
+	password = "root"
+	name     = "restful_app"
 )
 
 func loggingMiddleware(h http.Handler) http.Handler {
@@ -26,9 +34,11 @@ func wrap(h http.Handler) http.Handler {
 
 func main() {
 	r := mux.NewRouter()
-	apis.ServeCustomerResource(r, data.NewCustomerDAO())
-	apis.ServeDeveloperResource(r, data.NewDeveloperDAO())
-	apis.ServeUserResource(r, data.NewUserDAO())
+	connection := db.GetConnection(engine, username, password, name)
+	defer connection.Close()
+	apis.ServeCustomerResource(r, data.NewCustomerData(connection))
+	apis.ServeDeveloperResource(r, data.NewDeveloperData(connection))
+	apis.ServeUserResource(r, data.NewUserData(connection))
 	r.Use(loggingMiddleware)
 	log.Fatal(http.ListenAndServe(":8080", wrap(r)))
 }

@@ -1,4 +1,4 @@
-package connection
+package db
 
 import (
 	"fmt"
@@ -7,18 +7,11 @@ import (
 	"log"
 )
 
-const (
-	engine   = "postgres"
-	username = "postgres"
-	password = "root"
-	name     = "restful_app"
-)
-
-func GetConnection() *gorm.DB {
+func GetConnection(engine, username, password, name string) *gorm.DB {
 	dsn := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable", username, password, name)
-	db, err := gorm.Open(engine, dsn)
+	connection, err := gorm.Open(engine, dsn)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	return db
+	return connection
 }

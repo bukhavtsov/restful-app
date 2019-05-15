@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/bukhavtsov/restful-app/pkg/data"
-	"github.com/bukhavtsov/restful-app/pkg/models"
+	"github.com/bukhavtsov/restful-app/pkg/db"
 	"github.com/dgrijalva/jwt-go"
 	"log"
 	"net/http"
@@ -18,6 +18,11 @@ const (
 	iss              = "restful-app"
 	refreshTokenName = "refresh_token"
 	accessTokenName  = "access_token"
+
+	engine   = "postgres"
+	username = "postgres"
+	password = "root"
+	name     = "restful_app"
 )
 
 type jti struct {
@@ -80,7 +85,9 @@ func isVerifiedAccess(access string) bool {
 		log.Println(err)
 		return false
 	}
-	user, err := data.NewUserDAO().GetById(jti.Id)
+	connection := db.GetConnection(engine, username, password, name)
+	user, err := data.NewUserData(connection).GetById(jti.Id) //how to make this method without db connection
+	defer connection.Close()
 	if err != nil {
 		log.Println("user hasn't been found:", err)
 		return false
@@ -92,7 +99,7 @@ func isVerifiedAccess(access string) bool {
 	return true
 }
 
-func getUpdatedAccess(user models.User) (access string, err error) {
+func getUpdatedAccess(user data.User) (access string, err error) {
 	access, err = GenerateAccess(user)
 	if err != nil {
 		fmt.Println(err)
@@ -112,7 +119,7 @@ func isVerifiedRefresh(refresh string) bool {
 	return true
 }
 
-func getUser(tokenString, secretKeyAccess string) (*models.User, error) {
+func getUser(tokenString, secretKeyAccess string) (*data.User, error) {
 	token, err := parse(tokenString, secretKeyAccess)
 	if err != nil {
 		log.Println(err)
@@ -123,7 +130,9 @@ func getUser(tokenString, secretKeyAccess string) (*models.User, error) {
 		log.Println(err)
 		return nil, err
 	}
-	user, err := data.NewUserDAO().GetById(jti.Id)
+	connection := db.GetConnection(engine, username, password, name)
+	user, err := data.NewUserData(connection).GetById(jti.Id)
+	defer connection.Close()
 	if err != nil {
 		log.Println("user hasn't been found:", err)
 		return nil, err
@@ -169,7 +178,7 @@ func GetJTI(token *jwt.Token) (*jti, error) {
 	return nil, fmt.Errorf("user hasn't been found")
 }
 
-func GenerateAccess(user models.User) (tokenString string, err error) {
+func GenerateAccess(user data.User) (tokenString string, err error) {
 	jti, err := json.Marshal(&jti{user.Id, user.Role})
 	if err != nil {
 		return "", err
@@ -187,7 +196,7 @@ func GenerateAccess(user models.User) (tokenString string, err error) {
 	return token, nil
 }
 
-func GenerateRefresh(user models.User) (tokenString string, err error) {
+func GenerateRefresh(user data.User) (tokenString string, err error) {
 	jti, err := json.Marshal(&jti{user.Id, user.Role})
 	if err != nil {
 		return "", err

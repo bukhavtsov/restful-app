@@ -1,61 +1,57 @@
 package data
 
 import (
-	"github.com/bukhavtsov/restful-app/pkg/database/connection"
-	"github.com/bukhavtsov/restful-app/pkg/models"
 	"github.com/jinzhu/gorm"
 )
 
-type customerDAO struct {
-	DB *gorm.DB
+type Customer struct {
+	Id       int64  `gorm:"column:id" json:"id"`
+	Name     string `gorm:"column:name" json:"name"`
+	Money    int64  `gorm:"column:money" json:"money"`
+	Discount int64  `gorm:"column:discount" json:"discount"`
+	State    string `gorm:"column:state" json:"state"`
 }
 
-func NewCustomerDAO() *customerDAO {
-	return &customerDAO{}
+type customerData struct {
+	db *gorm.DB
 }
 
-func (dao *customerDAO) Read(id int64) (*models.Customer, error) {
-	db := connection.GetConnection()
-	defer db.Close()
-	customer := models.Customer{}
-	if err := db.Where("id = ?", id).Find(&customer).Error; err != nil {
+func NewCustomerData(db *gorm.DB) *customerData {
+	return &customerData{db}
+}
+
+func (d *customerData) Read(id int64) (*Customer, error) {
+	customer := Customer{}
+	if err := d.db.Where("id = ?", id).Find(&customer).Error; err != nil {
 		return nil, err
 	}
 	return &customer, nil
 }
 
-func (dao *customerDAO) ReadAll() ([]*models.Customer, error) {
-	db := connection.GetConnection()
-	defer db.Close()
-	customers := make([]*models.Customer, 0)
-	if err := db.Find(&customers).Error; err != nil {
-		return []*models.Customer{}, err
+func (d *customerData) ReadAll() ([]*Customer, error) {
+	customers := make([]*Customer, 0)
+	if err := d.db.Find(&customers).Error; err != nil {
+		return []*Customer{}, err
 	}
 	return customers, nil
 }
 
-func (dao *customerDAO) Create(customer *models.Customer) (int64, error) {
-	db := connection.GetConnection()
-	defer db.Close()
-	if err := db.Create(customer).Error; err != nil {
+func (d *customerData) Create(customer *Customer) (int64, error) {
+	if err := d.db.Create(customer).Error; err != nil {
 		return -1, err
 	}
 	return customer.Id, nil
 }
 
-func (dao *customerDAO) Update(customer *models.Customer) (*models.Customer, error) {
-	db := connection.GetConnection()
-	defer db.Close()
-	if err := db.Save(&customer).Error; err != nil {
+func (d *customerData) Update(customer *Customer) (*Customer, error) {
+	if err := d.db.Save(&customer).Error; err != nil {
 		return nil, err
 	}
 	return customer, nil
 }
 
-func (dao *customerDAO) Delete(id int64) error {
-	db := connection.GetConnection()
-	defer db.Close()
-	if err := db.Where("id = ?", id).Delete(&models.Customer{}).Error; err != nil {
+func (d *customerData) Delete(id int64) error {
+	if err := d.db.Where("id = ?", id).Delete(&Customer{}).Error; err != nil {
 		return err
 	}
 	return nil

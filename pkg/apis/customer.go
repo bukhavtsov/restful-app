@@ -3,27 +3,27 @@ package apis
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/bukhavtsov/restful-app/pkg/data"
 	"github.com/bukhavtsov/restful-app/pkg/jwt"
-	"github.com/bukhavtsov/restful-app/pkg/models"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"strconv"
 )
 
-type customerDAO interface {
-	Create(customer *models.Customer) (int64, error)
-	Read(id int64) (*models.Customer, error)
-	ReadAll() ([]*models.Customer, error)
-	Update(customer *models.Customer) (*models.Customer, error)
+type customerData interface {
+	Create(customer *data.Customer) (int64, error)
+	Read(id int64) (*data.Customer, error)
+	ReadAll() ([]*data.Customer, error)
+	Update(customer *data.Customer) (*data.Customer, error)
 	Delete(id int64) error
 }
 
 type customerAPI struct {
-	dao customerDAO
+	dao customerData
 }
 
-func ServeCustomerResource(r *mux.Router, dao customerDAO) {
+func ServeCustomerResource(r *mux.Router, dao customerData) {
 	r.Handle("/customers", jwt.VerifyPermission(customerAPI{dao}.getCustomers)).Methods("GET")
 	r.Handle("/customers/{id}", jwt.VerifyPermission(customerAPI{dao}.getCustomer)).Methods("GET")
 	r.Handle("/customers", jwt.VerifyPermission(customerAPI{dao}.createCustomer)).Methods("POST")
@@ -71,7 +71,7 @@ func (api customerAPI) getCustomer(writer http.ResponseWriter, request *http.Req
 }
 
 func (api customerAPI) createCustomer(writer http.ResponseWriter, request *http.Request) {
-	customer := new(models.Customer)
+	customer := new(data.Customer)
 	err := json.NewDecoder(request.Body).Decode(&customer)
 	if err != nil {
 		log.Printf("failed reading JSON: %\n", err)
@@ -89,7 +89,7 @@ func (api customerAPI) createCustomer(writer http.ResponseWriter, request *http.
 }
 
 func (api customerAPI) updateCustomer(writer http.ResponseWriter, request *http.Request) {
-	customer := new(models.Customer)
+	customer := new(data.Customer)
 	params := mux.Vars(request)
 	id, err := strconv.ParseInt(params["id"], 0, 64)
 	if err != nil {
